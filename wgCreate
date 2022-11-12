@@ -23,6 +23,10 @@ then
 fi
 
 
+if ![ -d "$wireguard_clients'clients'" ] 
+then
+    mkdir $wireguard_clients'clients'
+fi
 
 
 mkdir $wireguard_clients$new_client
