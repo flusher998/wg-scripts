@@ -1,0 +1,51 @@
+#!/bin/bash
+
+
+new_client="$1"
+wireguard_clients="/etc/wireguard/clients/"
+local_ip=`cat $wireguard_clients'all_clients.txt' |wc -l`
+local_ip=$((local_ip+2))
+
+if [ "$EUID" -ne 0 ]
+  then echo "Please run as root"
+  exit 0
+fi
+
+if [[ "$#" -ne 1 ]]; then 
+	echo "enter only client"
+	exit 0
+fi
+
+if [ -d "$wireguard_clients$1" ] 
+then
+    echo "This client already exists, create another one" 
+    exit 0
+fi
+
+
+
+
+mkdir $wireguard_clients$new_client
+wg genkey | tee $wireguard_clients$new_client/private_$new_client.key | wg pubkey | tee $wireguard_clients$new_client/public_$new_client.key
+
+private_key=`cat $wireguard_clients$new_client/private_$new_client.key`
+public_key=`cat $wireguard_clients$new_client/public_$new_client.key`
+
+echo -e "10.0.0.$local_ip\t$new_client\t\t$public_key" >> $wireguard_clients'all_clients.txt'
+wg set wg0 peer $public_key allowed-ips 10.0.0.$local_ip
+
+cat > $wireguard_clients$new_client/$new_client.conf << EOF
+[Interface]
+PrivateKey = $private_key  
+Address = 10.0.0.$local_ip/24
+DNS = 1.1.1.1, 1.0.0.1
+
+[Peer]
+PublicKey = YOUR_WIREGURD_SERVER_PUBLIC_KEY
+PersistentKeepalive = 30
+AllowedIPs = 0.0.0.0/0
+Endpoint = YOUR_WIREGUARD_SESRVER_IP:51820
+EOF
+
+qrencode -t ansiutf8 < $wireguard_clients$new_client/$new_client.conf
+
