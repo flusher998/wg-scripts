@@ -1,17 +1,18 @@
 #!/bin/bash
 
 
-new_client="$1"
-wireguard_clients="/etc/wireguard/clients/"
-local_ip=`cat $wireguard_clients'all_clients.txt' |wc -l`
-local_ip=$((local_ip+2))
 
 if [ "$EUID" -ne 0 ]
   then echo "Please run as root"
   exit 0
 fi
 
-if [[ "$#" -ne 1 ]]; then 
+new_client="$1"
+wireguard_clients="/etc/wireguard/clients/"
+local_ip=`cat $wireguard_clients"all_clients.txt" |wc -l`
+local_ip=$((local_ip+2))
+
+if [ "$#" -ne 1 ]; then 
 	echo "enter only client"
 	exit 0
 fi
@@ -35,7 +36,7 @@ wg genkey | tee $wireguard_clients$new_client/private_$new_client.key | wg pubke
 private_key=`cat $wireguard_clients$new_client/private_$new_client.key`
 public_key=`cat $wireguard_clients$new_client/public_$new_client.key`
 
-echo -e "10.0.0.$local_ip\t$new_client\t\t$public_key" >> $wireguard_clients'all_clients.txt'
+echo -e "10.0.0.$local_ip\t$new_client\t\t$public_key" >> $wireguard_clients"all_clients.txt"
 wg set wg0 peer $public_key allowed-ips 10.0.0.$local_ip
 
 cat > $wireguard_clients$new_client/$new_client.conf << EOF
