@@ -24,7 +24,7 @@ then
 fi
 
 
-if ![ -d "$wireguard_clients" ] 
+if [ ! -d "$wireguard_clients" ] 
 then
     mkdir $wireguard_clients
 fi
